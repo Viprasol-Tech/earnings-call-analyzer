@@ -25,6 +25,13 @@ def _repo_root() -> Path:
     return Path(__file__).resolve().parent.parent
 
 
+def _unquote(value: str) -> str:
+    """Drop one pair of matching quotes, so `name: ""` counts as empty."""
+    if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
+        return value[1:-1].strip()
+    return value
+
+
 def _parse_frontmatter(text: str) -> dict[str, str]:
     """Extract a simple key: value frontmatter block delimited by --- lines."""
     lines = text.splitlines()
@@ -39,7 +46,7 @@ def _parse_frontmatter(text: str) -> dict[str, str]:
             break
         if ":" in line:
             key, _, value = line.partition(":")
-            fields[key.strip()] = value.strip()
+            fields[key.strip()] = _unquote(value.strip())
 
     if not closed:
         raise ValueError("frontmatter block is not closed with a second '---'")
